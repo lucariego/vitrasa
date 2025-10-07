@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vitrasa - Información de Paradas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.8;
+            font-size: 1.1em;
+        }
+
+        .search-section {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 15px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .search-btn {
+            padding: 15px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .search-btn:hover {
+            background: #5a6fd8;
+        }
+
+        .search-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .info-section {
+            padding: 30px;
+        }
+
+        .stop-info {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .stop-name {
+            font-size: 1.8em;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .stop-details {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .stop-detail {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+        }
+
+        .routes-container {
+            margin-top: 30px;
+        }
+
+        .routes-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .routes-title {
+            font-size: 1.5em;
+            color: #2c3e50;
+        }
+
+        .refresh-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .refresh-btn:hover {
+            background: #218838;
+        }
+
+        .route-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .route-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .route-info {
+            flex: 1;
+        }
+
+        .route-line {
+            background: #667eea;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 8px;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .route-description {
+            color: #555;
+            font-size: 1.1em;
+        }
+
+        .route-time {
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .minutes {
+            font-size: 2em;
+            font-weight: bold;
+            color: #28a745;
+            display: block;
+        }
+
+        .minutes-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+
+        .empty-state img {
+            width: 100px;
+            opacity: 0.5;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .search-container {
+                flex-direction: column;
+            }
+
+            .stop-details {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .route-card {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚌 Vitrasa</h1>
+            <p>Información en tiempo real de paradas de autobús</p>
+        </div>
+
+        <div class="search-section">
+            <div class="search-container">
+                <input 
+                    type="text" 
+                    id="stopInput" 
+                    class="search-input" 
+                    placeholder="Introduce el número de parada (ej: 20195)"
+                    maxlength="10"
+                >
+                <button id="searchBtn" class="search-btn">Buscar</button>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div id="results">
+                <div class="empty-state">
+                    <h3>Bienvenido a Vitrasa Info</h3>
+                    <p>Introduce el número de una parada para ver los próximos autobuses</p>
+                    <p style="margin-top: 15px; font-size: 0.9em; color: #999;">
+                        Ejemplo: 20195 para "Praza de Compostela"
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class VitrasaApp {
+            constructor() {
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.loadFromURL();
+            }
+
+            setupEventListeners() {
+                const searchBtn = document.getElementById('searchBtn');
+                const stopInput = document.getElementById('stopInput');
+
+                searchBtn.addEventListener('click', () => this.searchStop());
+                stopInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.searchStop();
+                    }
+                });
+
+                // Only allow numbers in input
+                stopInput.addEventListener('input', (e) => {
+                    e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                });
+            }
+
+            loadFromURL() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const stopId = urlParams.get('stop');
+                if (stopId) {
+                    document.getElementById('stopInput').value = stopId;
+                    this.searchStop();
+                }
+            }
+
+            async searchStop() {
+                const stopId = document.getElementById('stopInput').value.trim();
+                
+                if (!stopId) {
+                    this.showError('Por favor, introduce un número de parada');
+                    return;
+                }
+
+                if (!/^\d+$/.test(stopId)) {
+                    this.showError('El número de parada debe contener solo dígitos');
+                    return;
+                }
+
+                this.showLoading();
+                
+                try {
+                    const response = await fetch(`/api/stop/${stopId}`);
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        this.showResults(data);
+                        // Update URL without reload
+                        window.history.pushState({}, '', `?stop=${stopId}`);
+                    } else {
+                        this.showError(data.message || 'Error al buscar la parada');
+                    }
+                } catch (error) {
+                    this.showError('Error de conexión. Verifica que el servidor esté funcionando.');
+                    console.error('Error:', error);
+                }
+            }
+
+            showLoading() {
+                document.getElementById('results').innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Buscando información de la parada...</p>
+                    </div>
+                `;
+            }
+
+            showError(message) {
+                document.getElementById('results').innerHTML = `
+                    <div class="error">
+                        <strong>Error:</strong> ${message}
+                    </div>
+                `;
+            }
+
+            showResults(data) {
+                const resultsDiv = document.getElementById('results');
+                
+                let html = `
+                    <div class="stop-info">
+                        <h2 class="stop-name">${data.stop_name}</h2>
+                        <div class="stop-details">
+                            <div class="stop-detail">
+                                <span>📍</span>
+                                <span>Parada ${data.stop_id}</span>
+                            </div>
+                            <div class="stop-detail">
+                                <span>🕒</span>
+                                <span>${data.current_time || 'N/A'}</span>
+                            </div>
+                            <div class="stop-detail">
+                                <span>🚌</span>
+                                <span>${data.total_routes} líneas</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="routes-container">
+                        <div class="routes-header">
+                            <h3 class="routes-title">Próximos Autobuses</h3>
+                            <button class="refresh-btn" onclick="app.searchStop()">🔄 Actualizar</button>
+                        </div>
+                `;
+
+                if (data.routes && data.routes.length > 0) {
+                    // Sort routes by minutes (putting non-numeric values at the end)
+                    const sortedRoutes = data.routes.sort((a, b) => {
+                        const aMin = typeof a.minutes === 'number' ? a.minutes : 999;
+                        const bMin = typeof b.minutes === 'number' ? b.minutes : 999;
+                        return aMin - bMin;
+                    });
+
+                    sortedRoutes.forEach(route => {
+                        const minutes = typeof route.minutes === 'number' ? route.minutes : route.minutes;
+                        const minutesDisplay = typeof route.minutes === 'number' ? 
+                            (route.minutes === 0 ? 'Ahora' : route.minutes) : route.minutes;
+                        
+                        html += `
+                            <div class="route-card">
+                                <div class="route-info">
+                                    <div class="route-line">${route.line}</div>
+                                    <div class="route-description">${route.route}</div>
+                                </div>
+                                <div class="route-time">
+                                    <span class="minutes">${minutesDisplay}</span>
+                                    <span class="minutes-label">${typeof route.minutes === 'number' && route.minutes !== 0 ? 'min' : ''}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    html += `
+                        <div class="empty-state">
+                            <p>No hay autobuses programados para esta parada en este momento.</p>
+                        </div>
+                    `;
+                }
+
+                html += `
+                        <div style="text-align: center; margin-top: 20px; color: #999; font-size: 0.9em;">
+                            Última actualización: ${new Date(data.last_updated).toLocaleTimeString('es-ES')}
+                        </div>
+                    </div>
+                `;
+
+                resultsDiv.innerHTML = html;
+            }
+        }
+
+        // Initialize app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            window.app = new VitrasaApp();
+        });
+    </script>
+</body>
+</html>
